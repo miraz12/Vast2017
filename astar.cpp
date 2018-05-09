@@ -2,6 +2,8 @@
 #include <vector>
 #include <queue>
 #include <algorithm>
+#include <fstream>
+
 #include "bitmap_image.hpp"
 
 int FindPath(const int nStartX, const int nStartY,
@@ -45,9 +47,9 @@ void buildMap(unsigned char* map);
 void createMatrix();
 int FindDistance(int x1, int y1, int x2, int y2);
 void insertInMatrix(int i, int j, int dist);
+void exportMartix();
 
 int mapWidth, mapHeight;
-unsigned char pMap[200 * 200];
 int pOutBuffer[200 * 200];
 
 //map
@@ -70,6 +72,8 @@ std::priority_queue<node> prioQueue;
 int goalIndex, startIndex;
 int goalX, goalY;
 bool targetFound = false;
+unsigned char pMap[200 * 200];
+
 
 int main()
 {
@@ -85,17 +89,18 @@ int main()
 
     std::cout << "Building matrix" << std::endl;
     createMatrix();
+    std::cout << "Exporting matrix" << std::endl;
+    //exportMartix();
 
+    int startX = rngrbase.x;
+    int startY = rngrbase.y;
 
-    int startX = entrances[0].x;
-    int startY = entrances[0].y;
-
-    int goalX = generalGates[1].x;
-    int goalY = generalGates[1].y;
+    int goalX = gates[8].x;
+    int goalY = gates[8].y;
    
+    
     std::cout << "Running A*" << std::endl;
-
-    int shortestDist = FindDistance(17, 67, 110, 9);
+    int shortestDist = FindDistance(startX, startY, goalX, goalY);
 
 
     std::cout << "Found shortest distance: " << shortestDist << std::endl;
@@ -104,13 +109,35 @@ int main()
     for (int i = 0; i < shortestDist; i++) {
         std::cout << pOutBuffer[i] << ", ";
     }
-
+    
+    std::cout << "Finished";
     std::cout << std::endl;
     std::cin.get();
 
     return 0;
 }
 
+void exportMartix()
+{
+    std::ofstream myfile;
+    myfile.open("../distancematrixMPH.csv");
+    if (myfile.is_open())
+    {
+        for (size_t i = 0; i < 40; i++)
+        {
+            for (size_t j = 0; j < 40; j++)
+            {
+                myfile << distancematrix[j][i] * 0.06f << ",";
+            }
+            myfile << "\n";
+        }
+    }
+    else
+    {
+        std::cout << "Could not open file \n";
+    }
+    myfile.close();
+}
 void createMatrix()
 {
     //Entrance5 -> Campings9 -> RngrStops8 -> Gates9 -> GeneralGates8 -> RangerBase1
@@ -119,9 +146,11 @@ void createMatrix()
     int iter = 0;
     for (int i = 0; i < entrances.size(); ++i)
     {
-        insertInMatrix(i, iter, 0);
-        iter++;
-
+        for (int j = 0; j < entrances.size(); ++j)
+        {
+            insertInMatrix(i, iter, FindDistance(entrances[i].x, entrances[i].y, entrances[j].x, entrances[j].y));
+            iter++;
+        }
         for (int j = 0; j < campings.size(); ++j)
         {
             insertInMatrix(i, iter, FindDistance(entrances[i].x, entrances[i].y, campings[j].x, campings[j].y));
@@ -142,8 +171,91 @@ void createMatrix()
             insertInMatrix(i, iter, FindDistance(entrances[i].x, entrances[i].y, generalGates[j].x, generalGates[j].y));
             iter++;
         }
+        
         insertInMatrix(i, iter, FindDistance(entrances[i].x, entrances[i].y, rngrbase.x, rngrbase.y));
-        iter++;
+        iter = 0;
+    }
+    iter = 0;
+    int off = entrances.size();
+    for (int i = 0; i < campings.size(); ++i)
+    {
+        for (int j = 0; j < campings.size(); ++j)
+        {
+            insertInMatrix(i + off, iter + off, FindDistance(campings[i].x, campings[i].y, campings[j].x, campings[j].y));
+            iter++;
+        }
+        for (int j = 0; j < rngrStops.size(); ++j)
+        {
+            insertInMatrix(i + off, iter + off, FindDistance(campings[i].x, campings[i].y, rngrStops[j].x, rngrStops[j].y));
+            iter++;
+        }
+        for (int j = 0; j < gates.size(); ++j)
+        {
+            insertInMatrix(i + off, iter + off, FindDistance(campings[i].x, campings[i].y, gates[j].x, gates[j].y));
+            iter++;
+        }
+        for (int j = 0; j < generalGates.size(); ++j)
+        {
+            insertInMatrix(i + off, iter + off, FindDistance(campings[i].x, campings[i].y, generalGates[j].x, generalGates[j].y));
+            iter++;
+        }
+
+        insertInMatrix(i + off, iter + off, FindDistance(campings[i].x, campings[i].y, rngrbase.x, rngrbase.y));
+        iter = 0;
+    }
+    iter = 0;
+    off += campings.size();
+    for (int i = 0; i < rngrStops.size(); ++i)
+    {
+        for (int j = 0; j < rngrStops.size(); ++j)
+        {
+            insertInMatrix(i + off, iter + off, FindDistance(rngrStops[i].x, rngrStops[i].y, rngrStops[j].x, rngrStops[j].y));
+            iter++;
+        }
+        for (int j = 0; j < gates.size(); ++j)
+        {
+            insertInMatrix(i + off, iter + off, FindDistance(rngrStops[i].x, rngrStops[i].y, gates[j].x, gates[j].y));
+            iter++;
+        }
+        for (int j = 0; j < generalGates.size(); ++j)
+        {
+            insertInMatrix(i + off, iter + off, FindDistance(rngrStops[i].x, rngrStops[i].y, generalGates[j].x, generalGates[j].y));
+            iter++;
+        }
+
+        insertInMatrix(i + off, iter + off, FindDistance(rngrStops[i].x, rngrStops[i].y, rngrbase.x, rngrbase.y));
+        iter = 0;
+    }
+    iter = 0;
+    off += rngrStops.size();
+    for (int i = 0; i < gates.size(); ++i)
+    {
+        for (int j = 0; j < gates.size(); ++j)
+        {
+            insertInMatrix(i + off, iter + off, FindDistance(gates[i].x, gates[i].y, gates[j].x, gates[j].y));
+            iter++;
+        }
+        for (int j = 0; j < generalGates.size(); ++j)
+        {
+            insertInMatrix(i + off, iter + off, FindDistance(gates[i].x, gates[i].y, generalGates[j].x, generalGates[j].y));
+            iter++;
+        }
+
+        insertInMatrix(i + off, iter + off, FindDistance(gates[i].x, gates[i].y, rngrbase.x, rngrbase.y));
+        iter = 0;
+    }
+    iter = 0;
+    off += gates.size();
+    for (int i = 0; i < generalGates.size(); ++i)
+    {
+        for (int j = 0; j < generalGates.size(); ++j)
+        {
+            insertInMatrix(i + off, iter + off, FindDistance(generalGates[i].x, generalGates[i].y, generalGates[j].x, generalGates[j].y));
+            iter++;
+        }
+
+        insertInMatrix(i + off, iter + off, FindDistance(generalGates[i].x, generalGates[i].y, rngrbase.x, rngrbase.y));
+        iter = 0;
     }
 }
 
