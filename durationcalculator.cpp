@@ -4,27 +4,39 @@
 #include <iomanip>
 #include <sstream>  
 #include <map>
+#include <unordered_map>
 
+struct ObservationInfo
+{
+    
+};
 
 int main()
 {
 
 
-    std::vector<std::map<std::string, std::vector<double>>> entrances(5);
-    std::vector<std::map<std::string, std::vector<double>>> campings(9);
-    std::vector<std::map<std::string, std::vector<double>>> rngrStops(8);
-    std::vector<std::map<std::string, std::vector<double>>> gates(9);
-    std::vector<std::map<std::string, std::vector<double>>> generalGates(8);
-    std::map<std::string, std::vector<double>> rngrbase;
+    std::vector<std::unordered_map<float, std::vector<double>>> entrances(5);
+    std::vector<std::unordered_map<float, std::vector<double>>> campings(9);
+    std::vector<std::unordered_map<float, std::vector<double>>> rngrStops(8);
+    std::vector<std::unordered_map<float, std::vector<double>>> gates(9);
+    std::vector<std::unordered_map<float, std::vector<double>>> generalGates(8);
+    std::map<float, std::vector<double>> rngrbase;
 
     std::vector<std::vector<std::string>> lines;
     std::vector<std::string> tokens;
+    std::vector<float> ids;
     char * pch;
     io::LineReader in("../sensordata.csv");
 
     int line = 0;
+    bool first = true;
     while(char*line = in.next_line())
     {
+        if (first)
+        {
+            first = false; 
+            continue;
+        }
         pch = strtok(line, ",");
         tokens.clear();
         while(pch != NULL)
@@ -33,22 +45,25 @@ int main()
             pch = strtok(NULL, ",");
         }
         lines.push_back(tokens);
+        std::string id = tokens[1];
+        id.erase(std::remove(id.begin(), id.end(), '-'), id.end());
+        float idi = std::stof(id);
+        ids.push_back(idi);
     }
+
 
     //Remove first line with lables
     assert(!lines.empty());
-    lines.erase(lines.begin());
 
 
 
 
     for (int i = 0; i < lines.size(); ++i)
     {
-        std::string currentId = lines[i][1];
-        std::string time = lines[i][0];
+        float currentId = ids[i];
         for (int j = i+1; j < lines.size(); ++j)
         {
-            if (currentId == lines[j][1])
+            if (currentId == ids[j])
             {
                 std::tm tm = {};
                 std::tm tm2 = {};
@@ -60,8 +75,6 @@ int main()
                 auto tp2 = std::chrono::system_clock::from_time_t(std::mktime(&tm2));
                 auto trp = (tp2 - tp) * 0.0000001;
 
-
-                //TODO: Fix indices, serialize vectors to files.
                 if (lines[i][3][0] == 'e' )
                 {
                     int index = int(lines[i][3][8] - 48);
@@ -143,5 +156,6 @@ int main()
     }
 
     std::cout << "done";
+    std::cin.get();
     return 0;
 }
