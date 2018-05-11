@@ -75,7 +75,7 @@ bool targetFound = false;
 unsigned char pMap[200 * 200];
 
 
-int main()
+int run()
 {
     mapWidth = 200;
     mapHeight = 200;
