@@ -5,11 +5,9 @@
 #include <sstream>  
 #include <map>
 #include <unordered_map>
+#include "astar.h"
 
-struct ObservationInfo
-{
-    
-};
+
 
 int main()
 {
@@ -27,6 +25,12 @@ int main()
     std::vector<float> ids;
     char * pch;
     io::LineReader in("../sensordata.csv");
+
+    clock_t start, end;
+    double cpu_time_used;
+
+    start = clock();
+    
 
     int line = 0;
     bool first = true;
@@ -65,6 +69,7 @@ int main()
         {
             if (currentId == ids[j])
             {
+
                 std::tm tm = {};
                 std::tm tm2 = {};
                 std::stringstream ss(lines.at(i).at(0));
@@ -155,7 +160,10 @@ int main()
         }
     }
 
-    std::cout << "done";
+    end = clock();
+    cpu_time_used = ((double)(end - start)) / CLOCKS_PER_SEC;
+
+    std::cout << "done: " << cpu_time_used;
     std::cin.get();
     return 0;
 }
