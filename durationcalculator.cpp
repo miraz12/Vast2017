@@ -11,14 +11,16 @@
 
 int main()
 {
+    mapWidth = 200;
+    mapHeight = 200;
+    int size = mapWidth * mapHeight;
 
-
-    std::vector<std::unordered_map<float, std::vector<double>>> entrances(5);
-    std::vector<std::unordered_map<float, std::vector<double>>> campings(9);
-    std::vector<std::unordered_map<float, std::vector<double>>> rngrStops(8);
-    std::vector<std::unordered_map<float, std::vector<double>>> gates(9);
-    std::vector<std::unordered_map<float, std::vector<double>>> generalGates(8);
-    std::map<float, std::vector<double>> rngrbase;
+    std::vector<std::unordered_map<float, std::vector<double>>> mentrances(5);
+    std::vector<std::unordered_map<float, std::vector<double>>> mcampings(9);
+    std::vector<std::unordered_map<float, std::vector<double>>> mrngrStops(8);
+    std::vector<std::unordered_map<float, std::vector<double>>> mgates(9);
+    std::vector<std::unordered_map<float, std::vector<double>>> mgeneralGates(8);
+    std::map<float, std::vector<double>> mrngrbase;
 
     std::vector<std::vector<std::string>> lines;
     std::vector<std::string> tokens;
@@ -60,6 +62,10 @@ int main()
     assert(!lines.empty());
 
 
+    std::cout << "Loading bmp" << std::endl;
+    readBMP("../map24.bmp");
+    std::cout << "Building map" << std::endl;
+    buildMap(pMap);
 
 
     for (int i = 0; i < lines.size(); ++i)
@@ -69,96 +75,101 @@ int main()
         {
             if (currentId == ids[j])
             {
-
-                std::tm tm = {};
-                std::tm tm2 = {};
-                std::stringstream ss(lines.at(i).at(0));
-                std::stringstream ss2(lines.at(j).at(0));
-                ss >> std::get_time(&tm, "%Y-%M-%D %H:%M:%S");
-                ss2 >> std::get_time(&tm2, "%Y-%M-%D %H:%M:%S");
-                auto tp = std::chrono::system_clock::from_time_t(std::mktime(&tm));
-                auto tp2 = std::chrono::system_clock::from_time_t(std::mktime(&tm2));
-                auto trp = (tp2 - tp) * 0.0000001;
-
+                int x1{ -1 }, y1{ -1 }, x2{ -1 }, y2{ -1 };
                 if (lines[i][3][0] == 'e' )
                 {
                     int index = int(lines[i][3][8] - 48);
-                    if (entrances[index][currentId].size() == 0) {
-                        std::vector<double> v;
-                        v.push_back(trp.count());
-                        entrances[index][currentId] = v;
-                    }
-                    else {
-                        entrances[index][currentId].push_back(trp.count());
-                    }
+                    x1 = entrances[index].x;
+                    y1 = entrances[index].y;
+                    
                 }
                 else if (lines[i][3][0] == 'c')
                 {
                     int index = int(lines[i][3][7] - 48);
-                    if (campings[index][currentId].size() == 0) {
-                        std::vector<double> v;
-                        v.push_back(trp.count());
-                        campings[index][currentId] = v;
-                    }
-                    else {
-                        campings[index][currentId].push_back(trp.count());
-                    }
+                    x1 = campings[index].x;
+                    y1 = campings[index].y;
+
                 }
-                else if (lines[i][3][0] == 'r'  && lines[i][3][11] == 's')
+                else if (lines[i][3][0] == 'r'  && lines[i][3][7] == 's')
                 {
                     int index = int(lines[i][3][11] - 48);
-                    if (rngrStops[index][currentId].size() == 0) {
-                        std::vector<double> v;
-                        v.push_back(trp.count());
-                        rngrStops[index][currentId] = v;
-                    }
-                    else {
-                        rngrStops[index][currentId].push_back(trp.count());
-                    }
+                    x1 = rngrStops[index].x;
+                    y1 = rngrStops[index].y;
+
                 }
-                else if (lines[i][3][0] == 'r'  && lines[i][3][11] == 'b')
+                else if (lines[i][3][0] == 'r'  && lines[i][3][7] == 'b')
                 {
-                    if (rngrbase[currentId].size() == 0) {
-                        std::vector<double> v;
-                        v.push_back(trp.count());
-                        rngrbase[currentId] = v;
-                    }
-                    else {
-                        rngrbase[currentId].push_back(trp.count());
-                    }
+                    x1 = rngrbase.x;
+                    y1 = rngrbase.y;
+
                 }
                 else if (lines[i][3][0] == 'g' && lines[i][3][1] == 'a')
                 {
                     int index = int(lines[i][3][4] - 48);
-                    if (gates[index][currentId].size() == 0) {
-                        std::vector<double> v;
-                        v.push_back(trp.count());
-                        gates[index][currentId] = v;
-                    }
-                    else {
-                        gates[index][currentId].push_back(trp.count());
-                    }
+                    x1 = gates[index].x;
+                    y1 = gates[index].y;
                 }
                 else if (lines[i][3][0] == 'g' && lines[i][3][1] == 'e')
                 {
                     int index = int(lines[i][3][12] - 48);
-                    if (generalGates[index][currentId].size() == 0) {
-                        std::vector<double> v;
-                        v.push_back(trp.count());
-                        generalGates[index][currentId] = v;
-                    }
-                    else {
-                        generalGates[index][currentId].push_back(trp.count());
-                    }
+                    x1 = generalGates[index].x;
+                    y1 = generalGates[index].y;
+                }
+
+                if (lines[j][3][0] == 'e')
+                {
+                    int index = int(lines[j][3][8] - 48);
+                    x2 = entrances[index].x;
+                    y2 = entrances[index].y;
+
+                }
+                else if (lines[j][3][0] == 'c')
+                {
+                    int index = int(lines[j][3][7] - 48);
+                    x2 = campings[index].x;
+                    y2 = campings[index].y;
+
+                }
+                else if (lines[j][3][0] == 'r'  && lines[j][3][7] == 's')
+                {
+                    int index = int(lines[j][3][11] - 48);
+                    x2 = rngrStops[index].x;
+                    y2 = rngrStops[index].y;
+
+                }
+                else if (lines[j][3][0] == 'r'  && lines[j][3][7] == 'b')
+                {
+                    x2 = rngrbase.x;
+                    y2 = rngrbase.y;
+
+                }
+                else if (lines[j][3][0] == 'g' && lines[j][3][1] == 'a')
+                {
+                    int index = int(lines[j][3][4] - 48);
+                    x2 = gates[index].x;
+                    y2 = gates[index].y;
+                }
+                else if (lines[j][3][0] == 'g' && lines[j][3][1] == 'e')
+                {
+                    int index = int(lines[j][3][12] - 48);
+                    x2 = generalGates[index].x;
+                    y2 = generalGates[index].y;
                 }
                 
+ 
+                FindDistance(x1, y1, x2, y2, lines[j][2][0]-48);
+
+
                 //Remove first line with lables
                 //assert(!lines.empty());
                 //lines.erase(lines.begin());*/
-                continue;
+                break;
             }
         }
     }
+
+    std::cout << "Exporting heatmap" << std::endl;
+    exportHeatmap();
 
     end = clock();
     cpu_time_used = ((double)(end - start)) / CLOCKS_PER_SEC;

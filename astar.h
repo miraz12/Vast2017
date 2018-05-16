@@ -46,6 +46,7 @@ void investigate(node n);
 void findShortestPath(int dist, int* pOutBuffer, const int nOutBufferSize);
 void buildMap(unsigned char* map);
 void createMatrix();
+int FindDistance(int x1, int y1, int x2, int y2, int mon);
 int FindDistance(int x1, int y1, int x2, int y2);
 void insertInMatrix(int i, int j, int dist);
 void exportMartix();
@@ -55,8 +56,8 @@ void findTraversals();
 int mapWidth, mapHeight;
 int pOutBuffer[200 * 200];
 
+std::vector<std::vector<int>> heatmap(2, std::vector<int>(200*200, 0));
 
-std::vector<int> heatmap(200*200, 0);
 
 //map
 std::vector<mapinfo> colorVec;
@@ -135,24 +136,32 @@ void findTraversals()
 
 void exportHeatmap()
 {
-    std::ofstream myfile;
-    myfile.open("../heatmap.csv");
-    if (myfile.is_open())
+    for (int i = 0; i < heatmap.size(); ++i)
     {
-        for (int i = 0; i < heatmap.size(); ++i)
+        std::ofstream myfile;
+        
+        std::ostringstream name;
+        name << "../heatmap" << i << ".csv";
+
+        myfile.open(name.str().c_str());
+        if (myfile.is_open())
         {
-            myfile << heatmap[i] << ",";
-            if (i % 200 == 0)
+            for (int j = 0; j < heatmap.at(i).size(); ++j)
             {
-                myfile << "\n";
+                myfile << heatmap.at(i)[j] << ",";
+                if (j % 200 == 0)
+                {
+                    if (j != 0)
+                        myfile << "\n";
+                }
             }
         }
+        else
+        {
+            std::cout << "Could not open file \n";
+        }
+        myfile.close();
     }
-    else
-    {
-        std::cout << "Could not open file \n";
-    }
-    myfile.close();
 }
 
 void exportMartix()
@@ -176,6 +185,7 @@ void exportMartix()
     }
     myfile.close();
 }
+/*
 void createMatrix()
 {
     //Entrance5 -> Campings9 -> RngrStops8 -> Gates9 -> GeneralGates8 -> RangerBase1
@@ -296,6 +306,7 @@ void createMatrix()
         iter = 0;
     }
 }
+*/
 
 void insertInMatrix(int i, int j, int dist)
 {
@@ -303,7 +314,7 @@ void insertInMatrix(int i, int j, int dist)
     distancematrix[j][i] = dist;
 }
 
-int FindDistance(int x1, int y1, int x2, int y2)
+int FindDistance(int x1, int y1, int x2, int y2, int mon)
 {
     int dist = FindPath(x1, y1, x2, y2, pMap, mapWidth, mapHeight, pOutBuffer, 200 * 200);
     if (dist == -1)
@@ -318,11 +329,12 @@ int FindDistance(int x1, int y1, int x2, int y2)
 
     for (int i = 0; i < dist; ++i)
     {
-        heatmap[pOutBuffer[i]] += 1;
+        heatmap.at(mon-1)[pOutBuffer[i]] += 1;
     }
+    heatmap.at(mon-1)[getIndex(x2, y2)] += 1;
+
 
     return dist;
-
 }
 
 int FindPath(const int nStartX, const int nStartY,	const int nTargetX, const int nTargetY,
