@@ -67,7 +67,8 @@ int main()
     std::cout << "Building map" << std::endl;
     buildMap(pMap);
 
-
+    int inter = 0;
+    int i = 0;
     for (int i = 0; i < lines.size(); ++i)
     {
         float currentId = ids[i];
@@ -155,10 +156,19 @@ int main()
                     x2 = generalGates[index].x;
                     y2 = generalGates[index].y;
                 }
-                
- 
-                FindDistance(x1, y1, x2, y2, lines[j][2][0]-48);
 
+                std::tm tm = {};
+                std::tm tm2 = {};
+                std::stringstream ss(lines.at(i).at(0));
+                std::stringstream ss2(lines.at(j).at(0));
+                ss >> std::get_time(&tm, "%Y-%D-%M %H:%M:%S");
+                ss2 >> std::get_time(&tm2, "%Y-%D-%M %H:%M:%S");
+                auto tp = std::chrono::system_clock::from_time_t(std::mktime(&tm));
+                auto tp2 = std::chrono::system_clock::from_time_t(std::mktime(&tm2));
+                auto trp = (tp2 - tp) * 0.0000001 / 60 / 60;
+
+                FindDistance(x1, y1, x2, y2, tm.tm_year, 0);
+                inter++;
 
                 //Remove first line with lables
                 //assert(!lines.empty());
@@ -168,6 +178,9 @@ int main()
         }
     }
 
+
+    //printf("%i \n", numSpeedViol);
+    printf("%i \n", inter);
     std::cout << "Exporting heatmap" << std::endl;
     exportHeatmap();
 

@@ -1,0 +1,8 @@
+Number of logs going past the speed limit: 140472/168414
+Number of logs going 5mph past the speed limit: 137403/168414
+Number of logs going 10mph past the speed limit: 83333/168414
+Number of logs going 20mph past the speed limit: 15737/168414
+Number of logs going 30mph past the speed limit: 11754/168414
+
+Number of logs going past the speed limit year 2015: 121270/168414
+Number of logs going past the speed limit year 2016: 19202/168414

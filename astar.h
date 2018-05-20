@@ -46,7 +46,7 @@ void investigate(node n);
 void findShortestPath(int dist, int* pOutBuffer, const int nOutBufferSize);
 void buildMap(unsigned char* map);
 void createMatrix();
-int FindDistance(int x1, int y1, int x2, int y2, int mon);
+int FindDistance(int x1, int y1, int x2, int y2, double mon, int year);
 int FindDistance(int x1, int y1, int x2, int y2);
 void insertInMatrix(int i, int j, int dist);
 void exportMartix();
@@ -80,6 +80,7 @@ int goalIndex, startIndex;
 int goalX, goalY;
 bool targetFound = false;
 unsigned char pMap[200 * 200];
+int numSpeedViol = 0;
 
 
 int nomain()
@@ -138,8 +139,8 @@ void exportHeatmap()
 {
     for (int i = 0; i < heatmap.size(); ++i)
     {
+
         std::ofstream myfile;
-        
         std::ostringstream name;
         name << "../heatmap" << i << ".csv";
 
@@ -148,11 +149,15 @@ void exportHeatmap()
         {
             for (int j = 0; j < heatmap.at(i).size(); ++j)
             {
-                myfile << heatmap.at(i)[j] << ",";
+                myfile << heatmap.at(i)[j];
                 if (j % 200 == 0)
                 {
                     if (j != 0)
                         myfile << "\n";
+                }
+                else
+                {
+                    myfile << ",";
                 }
             }
         }
@@ -314,7 +319,7 @@ void insertInMatrix(int i, int j, int dist)
     distancematrix[j][i] = dist;
 }
 
-int FindDistance(int x1, int y1, int x2, int y2, int mon)
+int FindDistance(int x1, int y1, int x2, int y2, double mon, int year)
 {
     int dist = FindPath(x1, y1, x2, y2, pMap, mapWidth, mapHeight, pOutBuffer, 200 * 200);
     if (dist == -1)
@@ -327,12 +332,22 @@ int FindDistance(int x1, int y1, int x2, int y2, int mon)
         }
     }
 
-    for (int i = 0; i < dist; ++i)
+    if ((mon == 115))
     {
-        heatmap.at(mon-1)[pOutBuffer[i]] += 1;
+        for (int i = 0; i < dist; ++i)
+        {
+            heatmap.at(0)[pOutBuffer[i]] += 1;
+        }
+        heatmap.at(0)[getIndex(x1, y1)] += 1;
     }
-    heatmap.at(mon-1)[getIndex(x2, y2)] += 1;
-
+    else if((mon == 116))
+    {
+        for (int i = 0; i < dist; ++i)
+        {
+            heatmap.at(1)[pOutBuffer[i]] += 1;
+        }
+        heatmap.at(1)[getIndex(x1, y1)] += 1;
+    }
 
     return dist;
 }
