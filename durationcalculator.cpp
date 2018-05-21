@@ -24,7 +24,7 @@ int main()
 
     std::vector<std::vector<std::string>> lines;
     std::vector<std::string> tokens;
-    std::vector<float> ids;
+    std::vector<std::string> ids;
     char * pch;
     io::LineReader in("../sensordata.csv");
 
@@ -52,9 +52,9 @@ int main()
         }
         lines.push_back(tokens);
         std::string id = tokens[1];
-        id.erase(std::remove(id.begin(), id.end(), '-'), id.end());
-        float idi = std::stof(id);
-        ids.push_back(idi);
+        //id.erase(std::remove(id.begin(), id.end(), '-'), id.end());
+        //double idi = std::stof(id);
+        ids.push_back(id);
     }
 
 
@@ -71,7 +71,7 @@ int main()
     int i = 0;
     for (int i = 0; i < lines.size(); ++i)
     {
-        float currentId = ids[i];
+        std::string currentId = ids[i];
         for (int j = i+1; j < lines.size(); ++j)
         {
             if (currentId == ids[j])
@@ -109,6 +109,7 @@ int main()
                     int index = int(lines[i][3][4] - 48);
                     x1 = gates[index].x;
                     y1 = gates[index].y;
+
                 }
                 else if (lines[i][3][0] == 'g' && lines[i][3][1] == 'e')
                 {
@@ -143,6 +144,7 @@ int main()
                     x2 = rngrbase.x;
                     y2 = rngrbase.y;
 
+
                 }
                 else if (lines[j][3][0] == 'g' && lines[j][3][1] == 'a')
                 {
@@ -167,8 +169,15 @@ int main()
                 auto tp2 = std::chrono::system_clock::from_time_t(std::mktime(&tm2));
                 auto trp = (tp2 - tp) * 0.0000001 / 60 / 60;
 
-                FindDistance(x1, y1, x2, y2, tm.tm_year, 0);
-                inter++;
+                int type = lines[j][2][0]-48;
+
+                if (lines[i][2][1] == NULL)
+                {
+                    FindDistance(x1, y1, x2, y2, tm.tm_mon, 0);
+                    inter++;
+                }
+
+
 
                 //Remove first line with lables
                 //assert(!lines.empty());
@@ -179,7 +188,7 @@ int main()
     }
 
 
-    //printf("%i \n", numSpeedViol);
+    printf("%i \n", numSpeedViol);
     printf("%i \n", inter);
     std::cout << "Exporting heatmap" << std::endl;
     exportHeatmap();

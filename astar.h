@@ -15,7 +15,7 @@ int FindPath(const int nStartX, const int nStartY,
 struct node 
 {
 	int index;
-	int fCost;
+	float fCost;
 	int hCost;
 	int parent;
 };
@@ -42,11 +42,12 @@ int getX(int index);
 int getY(int index);
 int getIndex(int x, int y);
 int getDistance(int x, int y);
+float getDistanceEuclidean(int x, int y);
 void investigate(node n);
 void findShortestPath(int dist, int* pOutBuffer, const int nOutBufferSize);
 void buildMap(unsigned char* map);
 void createMatrix();
-int FindDistance(int x1, int y1, int x2, int y2, double mon, int year);
+int FindDistance(int x1, int y1, int x2, int y2, double mon, int id);
 int FindDistance(int x1, int y1, int x2, int y2);
 void insertInMatrix(int i, int j, int dist);
 void exportMartix();
@@ -56,7 +57,7 @@ void findTraversals();
 int mapWidth, mapHeight;
 int pOutBuffer[200 * 200];
 
-std::vector<std::vector<int>> heatmap(2, std::vector<int>(200*200, 0));
+std::vector<std::vector<int>> heatmap(12, std::vector<int>(200*200, 0));
 
 
 //map
@@ -95,13 +96,13 @@ int nomain()
     std::cout << "Building map" << std::endl;
     buildMap(pMap);
 
-    //std::cout << "Building matrix" << std::endl;
+    std::cout << "Building matrix" << std::endl;
     //createMatrix();
-    //std::cout << "Exporting matrix" << std::endl;
+    std::cout << "Exporting matrix" << std::endl;
     //exportMartix();
 
-    std::cout << "Building matrix" << std::endl;
-    exportHeatmap();
+    //std::cout << "Building matrix" << std::endl;
+    //exportHeatmap();
 
     /*int startX = rngrbase.x;
     int startY = rngrbase.y;
@@ -147,17 +148,20 @@ void exportHeatmap()
         myfile.open(name.str().c_str());
         if (myfile.is_open())
         {
-            for (int j = 0; j < heatmap.at(i).size(); ++j)
+            for (int j = 0; j < 40000; ++j)
             {
                 myfile << heatmap.at(i)[j];
                 if (j % 200 == 0)
                 {
                     if (j != 0)
                         myfile << "\n";
+                    else
+                        myfile << ",";
                 }
                 else
                 {
-                    myfile << ",";
+                    if (j != 40000-1)
+                        myfile << ",";
                 }
             }
         }
@@ -191,6 +195,7 @@ void exportMartix()
     myfile.close();
 }
 /*
+
 void createMatrix()
 {
     //Entrance5 -> Campings9 -> RngrStops8 -> Gates9 -> GeneralGates8 -> RangerBase1
@@ -319,7 +324,7 @@ void insertInMatrix(int i, int j, int dist)
     distancematrix[j][i] = dist;
 }
 
-int FindDistance(int x1, int y1, int x2, int y2, double mon, int year)
+int FindDistance(int x1, int y1, int x2, int y2, double mon, int id)
 {
     int dist = FindPath(x1, y1, x2, y2, pMap, mapWidth, mapHeight, pOutBuffer, 200 * 200);
     if (dist == -1)
@@ -332,22 +337,15 @@ int FindDistance(int x1, int y1, int x2, int y2, double mon, int year)
         }
     }
 
-    if ((mon == 115))
-    {
+
         for (int i = 0; i < dist; ++i)
         {
-            heatmap.at(0)[pOutBuffer[i]] += 1;
+            heatmap.at(mon)[pOutBuffer[i]] += 1;
         }
-        heatmap.at(0)[getIndex(x1, y1)] += 1;
-    }
-    else if((mon == 116))
-    {
-        for (int i = 0; i < dist; ++i)
-        {
-            heatmap.at(1)[pOutBuffer[i]] += 1;
-        }
-        heatmap.at(1)[getIndex(x1, y1)] += 1;
-    }
+        heatmap.at(mon)[getIndex(x1, y1)] += 1;
+        numSpeedViol++;
+
+    
 
     return dist;
 }
@@ -421,7 +419,6 @@ void readBMP(char* filename)
         }
     }
 }
-
 void buildMap(unsigned char* map)
 {
     for (int i = 0; i < colorVec.size(); i++)
@@ -487,7 +484,15 @@ int getIndex(int x, int y)
 
 int getDistance(int x, int y) 
 {
-	return std::max(x - goalX, goalX - x) + std::max(y - goalY, goalY - y);
+	return std::max(x - goalX, goalX - x) + std::max(y - goalY, goalY - y); //Manhattan distance
+    }
+
+float getDistanceEuclidean(int x, int y)
+{
+
+    float dx = std::abs(x - goalX);
+    float dy = std::abs(y - goalY);
+    return sqrtf(dx * dx + dy * dy);
 }
 
 void investigate(node n) 
@@ -557,6 +562,7 @@ void investigate(node n)
 			prioQueue.push(newNode);
 		}
 	}
+    //visit node above
 	if (y + 1 < mapHeight) 
 	{
 		int newId = getIndex(x, y + 1);
@@ -570,6 +576,60 @@ void investigate(node n)
 			prioQueue.push(newNode);
 		}
 	}
+    /*
+    if ((0 <= x - 1) && (0 <= y - 1)) //Down left
+    {
+        int newId = getIndex(x - 1, y - 1);
+        if (hCosts[newId] == -1 && map[newId] == 1)
+        {
+            node newNode;
+            newNode.index = newId;
+            newNode.parent = n.index;
+            newNode.hCost = n.hCost + 1;
+            newNode.fCost = (n.hCost + 1) + getDistanceEuclidean(x - 1, y - 1);
+            prioQueue.push(newNode);
+        }
+    }
+    if ((x + 1 < mapWidth) && (0 <= y - 1)) //Down right
+    {
+        int newId = getIndex(x + 1, y - 1);
+        if (hCosts[newId] == -1 && map[newId] == 1)
+        {
+            node newNode;
+            newNode.index = newId;
+            newNode.parent = n.index;
+            newNode.hCost = n.hCost + 1;
+            newNode.fCost = (n.hCost + 1) + getDistanceEuclidean(x + 1, y - 1);
+            prioQueue.push(newNode);
+        }
+    }
+    if ((0 <= x - 1) && (y + 1 < mapHeight)) //Up left
+    {
+        int newId = getIndex(x - 1, y + 1);
+        if (hCosts[newId] == -1 && map[newId] == 1)
+        {
+            node newNode;
+            newNode.index = newId;
+            newNode.parent = n.index;
+            newNode.hCost = n.hCost + 1;
+            newNode.fCost = (n.hCost + 1) + getDistanceEuclidean(x - 1, y + 1);
+            prioQueue.push(newNode);
+        }
+    }
+    if (x + 1 < mapWidth && (y + 1 < mapHeight)) //Up right
+    {
+        int newId = getIndex(x + 1, y + 1);
+        if (hCosts[newId] == -1 && map[newId] == 1)
+        {
+            node newNode;
+            newNode.index = newId;
+            newNode.parent = n.index;
+            newNode.hCost = n.hCost + 1;
+            newNode.fCost = (n.hCost + 1) + getDistanceEuclidean(x + 1, y + 1);
+            prioQueue.push(newNode);
+        }
+    }
+    */
 }
 
 void findShortestPath(int dist, int* pOutBuffer, const int nOutBufferSize) 
